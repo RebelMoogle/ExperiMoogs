@@ -54,6 +54,8 @@ ofMesh ImportPly::ImportPlyEigenCloud(const std::string filePathName)
 			ofLogError() << "Importer currently only supports ASCII format, invalid Format: " << currentLine;
 			throw("FormatNotSupported");
 		}
+
+		if(currentLine.compare())
 		// next line should read file type. 
 		// there might be arbitrary comments
 		// then properties, 
