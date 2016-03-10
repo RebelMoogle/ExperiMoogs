@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Eigen/Core>
+#include <../ThirdParty/Eigen/Core>
 
 typedef Eigen::Matrix<double, 5, 1> Vector5;
 
 struct mogCloudEigenVals
 {
-	ofMesh surfaceMesh;
+	ofMesh surfaceMesh = ofMesh();
 
 	std::vector<Vector5> FirstZeroEigenVector;
 

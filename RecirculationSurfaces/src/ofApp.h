@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ofMain.h"
+#include <ofxGui.h>
 #include "TypesAndStructs.h"
+#include "ImportPly.h"
 
 class ofApp : public ofBaseApp{
 
@@ -22,5 +24,19 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
-	
+	// load csv eigendata button
+	ofxPanel gui;
+	// button for loading exported surface data including first two eigenvectors and eigenvalues.
+	ofxButton LoadEigenCSV;
+	ofxFloatSlider DistanceThreshold;
+	ofxFloatSlider ArrowScale;
+
+	ofEasyCam cam;
+
+	private:
+		void LoadSurfaceEigenData();
+		mogCloudEigenVals SurfaceData;
+		bool surfaceLoaded = false;
+		std::vector<int> nearestIndices;
+		ofVec3f selectedVert;
 };

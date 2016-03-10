@@ -22,10 +22,11 @@ mogCloudEigenVals ImportPly::ImportEigenCloud(const std::string filePathName)
 	else
 	{
 		ofLog(ofLogLevel::OF_LOG_ERROR, "FILE DOES NOT EXIST, please try again.");
-		throw("NotFound");
+		throw(FileNotFound("File could not be found: " + ofToDataPath(filePathName)));
 	}
 
 	mogCloudEigenVals resultCloud;
+	resultCloud.surfaceMesh.setMode(OF_PRIMITIVE_POINTS);
 
 	std::string currentLine = csvFileBuffer.getFirstLine();
 
@@ -34,7 +35,7 @@ mogCloudEigenVals ImportPly::ImportEigenCloud(const std::string filePathName)
 	if(!ofIsStringInString(currentLine, "RebelEigenCSV"))
 	{
 		ofLogError() << "File does not contain RebelEigenCSV on line 1: " << currentLine;
-		throw ("InvalidHeader");
+		throw (InvalidHeader("File does not start with RebelEigenCSV on Line 1: " + currentLine));
 	}
 	else
 	{
@@ -57,7 +58,7 @@ mogCloudEigenVals ImportPly::ImportEigenCloud(const std::string filePathName)
 		
 		// position vector
 		resultCloud.surfaceMesh.addVertex(ofVec3f(ofToDouble(lineValues[0]), ofToDouble(lineValues[1]), ofToDouble(lineValues[2])));
-		resultCloud.surfaceMesh.addTexCoord(ofVec2f(ofToDouble(lineValues[3]), ofToDouble(lineValues[4])));
+		resultCloud.surfaceMesh.addTexCoord(ofVec2f(ofToDouble(lineValues[3]), ofToDouble(lineValues[4]))); // change to texcoords if necessary. 
 
 		// eigenVector 1
 		resultCloud.FirstZeroEigenVector.push_back((Vector5() << ofToDouble(lineValues[5]), ofToDouble(lineValues[6]), ofToDouble(lineValues[7]), ofToDouble(lineValues[8]), ofToDouble(lineValues[9])).finished());
