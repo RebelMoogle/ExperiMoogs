@@ -38,5 +38,6 @@ class ofApp : public ofBaseApp{
 		mogCloudEigenVals SurfaceData;
 		bool surfaceLoaded = false;
 		std::vector<int> nearestIndices;
-		ofVec3f selectedVert;
+		ofVec3f selectedVert = ofVec3f();
+		int selectedIndex = 0;
 };

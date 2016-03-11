@@ -66,11 +66,23 @@ void ofApp::draw(){
 	ofVec2f offset(10, -10);
 
 
-	ofDrawBitmapStringHighlight(ofToString(selectedVert) + "\n ", ofVec2f(mouseX, mouseY) + offset);
-
+	ofDrawBitmapStringHighlight(ofToString(selectedVert), ofVec2f(mouseX, mouseY) + offset);
 
 	// todo print eigenvalues of selected point
 	// highlight selected point. // see point picker example
+	if(surfaceLoaded)
+	{
+		Vector5& selEigenVals = SurfaceData.EigenValues[selectedIndex];
+		ofDrawBitmapString("EigenValues at (" + ofToString(selectedVert) + ") \n " 
+			+ ofToString(selEigenVals(0)) + "\n " 
+			+ ofToString(selEigenVals(1)) + "\n " 
+			+ ofToString(selEigenVals(2)) + "\n " 
+			+ ofToString(selEigenVals(3)) + "\n " 
+			+ ofToString(selEigenVals(4)) + "\n", 
+			gui.getPosition() + ofPoint(0, gui.getHeight() + 20));
+	}
+
+
 
 	gui.draw();
 
@@ -117,6 +129,7 @@ void ofApp::mousePressed(int x, int y, int button){
 				if (i == 0 || distance < nearestDistance) {
 					nearestDistance = distance;
 					selectedVert = cur;
+					selectedIndex = i;
 				}
 			}
 
