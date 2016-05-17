@@ -240,3 +240,4 @@ _Pvt_Extensions
 *.make
 ExperiMoogs/icon.rc
 RecirculationSurfaces/icon.rc
+*.db
