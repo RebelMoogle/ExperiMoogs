@@ -57,6 +57,8 @@ public:
 
     const mogDistanceResult FindSurfacePositionFrom(Vector5 StartPosition, double StepSize, double MinimumStep = 0.0, const int maximumIterations = 500);
 
+    // TODO: write functionality for kicking off distance calculation and getting results. 
+
 private:
     const Vector5 ComputeGradientDescentToSurface(const Vector5& StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize = 0.001) const;
 
