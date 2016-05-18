@@ -51,7 +51,6 @@ struct RecirculationParameters {
 /** Contains members and functions necessary for calculating Recirculation Surfaces */
 class RecirculationSurfaceUtils {
 public:
-    //TODO setting parameters
     RecirculationSurfaceUtils(const AnalyticField& flowData, const RecirculationParameters& recircOptions = RecirculationParameters()) : FlowData(flowData), parameters(recircOptions)
     {};
     ~RecirculationSurfaceUtils();
@@ -68,7 +67,7 @@ private:
     *	StartPosition contains Position and minimum starttime and integration period,
     *	MaxTimeTau holds the maximum Starttime and Integration period #
     *   Uses Timesteps as resolution*/
-    const std::vector<mogDistanceResult> ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d MaxTimeTau);
+    const std::vector<mogDistanceResult> ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d MaxTimeTau, const UINT32 TimeSteps);
 
     void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const bool TauComparison = true);
     mogDistanceResult ComputeMinimumDistanceWithin(const VC::math::VecN<double, 3> StartVector3, const double CellSize, double endTau, const bool TauComparison = true);
@@ -80,6 +79,6 @@ private:
     const AnalyticField& FlowData;
 
     RecirculationParameters parameters;
-
+    
 };
 

@@ -24,8 +24,8 @@ struct mogEigenVectorValues {
 };
 
 struct mogDistanceResult {
-    Eigen::Vector3d DistanceVector;
     Vector5 MinPosition;
+    Eigen::Vector3d DistanceVector;
     std::unique_ptr<Solution3D> myIntegration = nullptr; // has to use move semantic. Can be nullptr if not used.
 
     mogDistanceResult()
@@ -38,6 +38,7 @@ struct mogDistanceResult {
     {
         return DistanceVector.norm() < other.DistanceVector.norm();
     }
+
 };
 
 struct mogSurfaceResult {

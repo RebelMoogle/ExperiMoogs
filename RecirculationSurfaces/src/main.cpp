@@ -15,3 +15,5 @@ int main( ){
 	ofRunApp(new ofApp());
 
 }
+
+// TODO: write (unit) tests for Recirculation and Analyticfield functionality.

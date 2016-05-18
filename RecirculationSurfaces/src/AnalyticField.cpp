@@ -80,6 +80,29 @@ void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, std
     });
 }
 
+const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const Eigen::Vector4d position, const float IntegrationTime, const double StepSize, const double CellSize) const
+{
+    // TODO: integrate over timestep ( pass time for integration to function!)
+    Eigen::Vector3d XHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d( CellSize, 0., 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d XLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(-CellSize, 0., 0., 0.), IntegrationTime, StepSize,);
+    Eigen::Vector3d YHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0.,  CellSize, 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d YLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., -CellSize, 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d ZHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0.,  CellSize, 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d ZLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., -CellSize, 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d THi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., 0.,  CellSize), IntegrationTime, StepSize);
+    Eigen::Vector3d TLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., 0., -CellSize), IntegrationTime, StepSize);
+
+
+    Eigen::Vector3d dx = (XHi - XLo) / (2.0*CellSize);
+    Eigen::Vector3d dy = (YHi - YLo) / (2.0*CellSize);
+    Eigen::Vector3d dz = (ZHi - ZLo) / (2.0*CellSize);
+    Eigen::Vector3d dt = (THi - TLo) / (2.0*CellSize);
+
+    Eigen::Matrix<double, 3, 4> ResultGradient;
+    ResultGradient << dx, dy, dz, dt;
+    return ResultGradient;
+}
+
 Eigen::Vector3d AnalyticField::IntegrateOverTimeVCLibsRK43(const Eigen::Vector4d & WorldPosition, const double IntegrationTime, const double StepSize, VC::math::ode::Solution<double, VC::math::VecN<double, 3>>* Solution, int MaximumSteps) const
 {
     VC::math::ode::RK43<Evaluator> rk43;
