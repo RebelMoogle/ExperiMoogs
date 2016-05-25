@@ -3,7 +3,6 @@
 #include "ofMain.h"
 #include <ofxGui.h>
 #include "TypesAndStructs.h"
-#include "ImportPly.h"
 
 class ofApp : public ofBaseApp{
 
@@ -34,8 +33,6 @@ class ofApp : public ofBaseApp{
 	ofEasyCam cam;
 
 	private:
-		void LoadSurfaceEigenData();
-		mogCloudEigenVals SurfaceData;
 		bool surfaceLoaded = false;
 		std::vector<int> nearestIndices;
 		ofVec3f selectedVert = ofVec3f();

@@ -1,7 +1,7 @@
 #pragma once
 #include <future>
-#include "TypesAndStructs.h"
 #include "AnalyticField.h"
+#include "TypesAndStructs.h"
 
 struct RecirculationParameters {
 
@@ -57,7 +57,16 @@ public:
 
     const mogDistanceResult FindSurfacePositionFrom(Vector5 StartPosition, double StepSize, double MinimumStep = 0.0, const int maximumIterations = 500);
 
-    // TODO: write functionality for kicking off distance calculation and getting results. 
+    /* gets all calculated distances. 
+    * if the calculation is not done yet, it will clear the old saved results and 
+    fill MinimumDistances with the new calculation results. (waiting for them to finish)
+    * throws an exception if calculations have not been started.**/
+    const std::vector<mogDistanceResult>& GetDistances();
+
+    /* Start Distance Calculation in threads
+    * uses std::future for parralel computing. 
+    * needs a current version of gcc to run correctly.  **/
+    void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const UINT TimeSteps = 11, const bool TauComparison = true);
 
 private:
     const Vector5 ComputeGradientDescentToSurface(const Vector5& StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize = 0.001) const;
@@ -70,8 +79,6 @@ private:
     *	MaxTimeTau holds the maximum Starttime and Integration period #
     *   Uses Timesteps as resolution*/
     const std::vector<mogDistanceResult> ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d MaxTimeTau, const UINT32 TimeSteps);
-
-    void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const bool TauComparison = true);
     mogDistanceResult ComputeMinimumDistanceWithin(const VC::math::VecN<double, 3> StartVector3, const double CellSize, double endTau, const bool TauComparison = true);
 
     std::vector<mogSurfaceResult> SurfaceVertices;

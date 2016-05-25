@@ -13,13 +13,15 @@ public:
 
 	Eigen::Vector3d GetDataAt(Eigen::Vector4d position) const;
 
+    Eigen::Vector3d GetDataAt(Eigen::Vector3d position, double t) const;
+
 	// Calculates Pathline starting from WorldPosition (includes time)
 	// Can try to compute outside of bounding box if IgnoreBounds is true.
 	//TODO make FRunnable to perform in threads
 	// FORWARD ONLY
 	void ComputePathLineAt(const Eigen::Vector4d& WorldPosition, std::vector<Eigen::Vector3d>& PathLine, const bool IgnoreBounds = false, const double StepSize = 0.1, const float IntegrationTime = FLT_MAX, const unsigned int maxSteps = 100000);
 
-    const Eigen::Matrix<double, 3, 4> ComputeFlowGradientTime(const Eigen::Vector4d position, const float IntegrationTime, const double StepSize = 0.001, const double CellSize = 0.0001) const;
+    const Eigen::Matrix<double, 3, 4> ComputeFlowGradientTime(const Eigen::Vector4d position, const double IntegrationTime, const double StepSize = 0.001, const double CellSize = 0.0001) const;
 
 	// adaptive RK43 integrator from vclibs
 	Eigen::Vector3d IntegrateOverTimeVCLibsRK43(const Eigen::Vector4d& WorldPosition, const double IntegrationTime, const double StepSize = 0.01, VC::math::ode::Solution<double, VC::math::VecN<double, 3>>* Solution = nullptr, int MaximumSteps = 0) const;

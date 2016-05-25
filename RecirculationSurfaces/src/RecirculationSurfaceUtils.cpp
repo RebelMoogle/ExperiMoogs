@@ -1,4 +1,5 @@
 #include "RecirculationSurfaceUtils.h"
+#include <memory>
 #include <../ThirdParty/Eigen/EigenValues>
 
 RecirculationSurfaceUtils::~RecirculationSurfaceUtils()
@@ -55,6 +56,23 @@ const mogDistanceResult RecirculationSurfaceUtils::FindSurfacePositionFrom(Vecto
     return result; // OldPosition will have the best one we found so far.
 }
 
+const std::vector<mogDistanceResult>& RecirculationSurfaceUtils::GetDistances()
+{
+    if (MinimumFutureDistances.size() > 0) {
+        MinimumDistances.clear();
+        for (int i = 0; i < MinimumFutureDistances.size(); ++i) {
+            MinimumDistances.push_back(MinimumFutureDistances[i].get());
+        }
+        MinimumFutureDistances.clear();
+    }
+    else if (MinimumDistances.size() == 0) {
+        // no calculation started
+        throw "Please start Distance Calculation first!";
+    }
+
+    return MinimumDistances;
+}
+
 const Vector5 RecirculationSurfaceUtils::ComputeGradientDescentToSurface(const Vector5 & StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize) const
 {
     //Flowmap at position - position
@@ -70,11 +88,7 @@ const Eigen::Matrix<double, 3, 5> RecirculationSurfaceUtils::CreateSurfaceMatrix
 
     // 5th dimension is integration time at surface position.
     if (SurfacePosition[4] == 0.0f) {
-        // TODO: Implement computeJacobian
-        //Eigen::Matrix<double, 3, 3> Jacobian = FlowData->ComputeJacobian(FVector4(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), StepSize);
-        //Eigen::Vector3d curFlow = FlowData->GetDataAt((Eigen::Vector4d() << SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]).finished());
-
-        auto JacobianT = FlowData.ComputeFlowGradientTime(Eigen::Vector4d(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), StepSize);
+        auto JacobianT = FlowData.ComputeFlowGradientTime(Eigen::Vector4d(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), SurfacePosition[4], StepSize);
         Eigen::Matrix<double, 3, 3> Jacobian;
         Eigen::Vector3d curFlow = JacobianT.col(3);
         Jacobian << JacobianT.col(0), JacobianT.col(1), JacobianT.col(2);
@@ -95,14 +109,14 @@ const Eigen::Matrix<double, 3, 5> RecirculationSurfaceUtils::CreateSurfaceMatrix
         0, 1, 0,
         0, 0, 1;
 
-    const Eigen::Matrix<double, 3, 4> GradientGT = FlowData.ComputeFlowGradientTime(Eigen::Vector4d(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), SurfacePosition[4], StepSize, StepSize);
+    const Eigen::Matrix<double, 3, 4> GradientGT = FlowData.ComputeFlowGradientTime(Eigen::Vector4d(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), SurfacePosition[4], StepSize);
 
     const Eigen::Matrix<double, 3, 3> GradientG = (Eigen::Matrix<double, 3, 3>() << GradientGT.col(0), GradientGT.col(1), GradientGT.col(2)).finished() - IdentityMatrix;
 
     //const Eigen::Matrix<double, 3, 3> GradientG = FlowData->ComputeFlowGradient(FVector4(SurfacePosition[0], SurfacePosition[1], SurfacePosition[2], SurfacePosition[3]), SurfacePosition[4], StepSize) - IdentityMatrix;
 
     const Eigen::Vector3d FirstPosEigen = (Eigen::Vector3d() << SurfacePosition[0], SurfacePosition[1], SurfacePosition[2]).finished();
-    const Eigen::Vector3d VelocityDAtEnd = FlowData.GetDataAt(Eigen::Vector4d(IntegratedPosition, SurfacePosition[3] + SurfacePosition[4])) - (IntegratedPosition - FirstPosEigen) / SurfacePosition[4];
+    const Eigen::Vector3d VelocityDAtEnd = FlowData.GetDataAt(IntegratedPosition, SurfacePosition[3] + SurfacePosition[4]) - (IntegratedPosition - FirstPosEigen) / SurfacePosition[4];
 
     //[row][column] - for both Eigen and Unreal
     resultMatrix << GradientG(0, 0), GradientG(0, 1), GradientG(0, 2), GradientGT(0, 3), VelocityDAtEnd(0),
@@ -174,7 +188,7 @@ const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistan
     return result;
 }
 
-void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const bool TauComparison, const UINT32 TimeSteps)
+void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const UINT TimeSteps, const bool TauComparison)
 {
     Eigen::Vector3d CellSizes;
     //check(GradientFieldResolution.GetMin() <= 0 && "Resolution axis invalid (needs to be greater than 0)");
@@ -259,7 +273,7 @@ mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const 
         }
         else {
 
-            curResultData.myIntegration = make_unique<Solution3D>(currentSolution);
+            curResultData.myIntegration = std::make_unique<Solution3D>(currentSolution);
         }
 
 

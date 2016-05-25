@@ -1,21 +1,11 @@
 #pragma once
-#include "ofMain.h"
+#include <memory>
 #include <../ThirdParty/Eigen/Core>
 #include <../ThirdParty/vclibs/include/math/VecN.hh>
 #include <../ThirdParty/vclibs/include/math/ode.hh>
 
 typedef Eigen::Matrix<double, 5, 1> Vector5;
 typedef VC::math::ode::Solution<double, VC::math::VecN<double, 3>> Solution3D;
-
-struct mogCloudEigenVals{
-	ofMesh surfaceMesh = ofMesh();
-
-	std::vector<Vector5> FirstZeroEigenVector;
-
-	std::vector<Vector5> SecondZeroEigenVector;
-
-	std::vector<Vector5> EigenValues;
-};
 
 struct mogEigenVectorValues {
     std::vector<Vector5> eigenVectors;
