@@ -234,10 +234,5 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
-*.sln
-*.vcxproj
-*.filters
-*.make
-ExperiMoogs/icon.rc
-RecirculationSurfaces/icon.rc
-*.db
+
+# custom stuff
