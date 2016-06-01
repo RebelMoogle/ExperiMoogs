@@ -1,47 +1,9 @@
 #include "AnalyticField.h"
 
+#include <boost/numeric/odeint.hpp>
+#include <boost/numeric/odeint/external/eigen/eigen.hpp>
 
-class Evaluator {
-public:
-	typedef double real_t;
-	typedef VC::math::VecN<double, 3> vec_t;
-
-	Evaluator() :FlowData(nullptr) {};
-	Evaluator(const AnalyticField* flowData) : FlowData(flowData) {};
-
-	bool refine(vec_t&, vec_t&) {
-		return false; // we dont want / need to refine this vector field
-	}
-
-	void initialize_vector(vec_t& _x, const vec_t& _y) {}
-
-	void initialize(real_t, const vec_t&,
-		VC::math::ode::RK43<Evaluator>*) {
-	}
-
-	void dy(real_t _t, const vec_t& _y, vec_t& _dy)
-	{
-		assert(FlowData != nullptr);
-		Eigen::Vector3d Velocity = FlowData->GetDataAt((Eigen::Vector4d() << _y[0], _y[1], _y[2], _t).finished());
-		_dy = vec_t(Velocity(0), Velocity(1), Velocity(2));
-	}
-
-	void output(real_t _t, const vec_t& _y, const vec_t& _dy)
-	{
-		// log each step.?
-		// action to perform / output each step
-	}
-
-	bool is_inside(real_t, const vec_t&) {
-		return true;
-	}
-
-private:
-	const AnalyticField* FlowData;
-
-};
-
-AnalyticField::AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector4d position)> analyticFormula):FieldName(fieldName), AnalyticFormula(analyticFormula)
+AnalyticField::AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula):FieldName(fieldName), AnalyticFormula(analyticFormula)
 {
 
 }
@@ -51,49 +13,38 @@ AnalyticField::~AnalyticField()
 {
 }
 
-Eigen::Vector3d AnalyticField::GetDataAt(Eigen::Vector4d position) const
-{
-    return AnalyticFormula(position);
-}
-
-Eigen::Vector3d AnalyticField::GetDataAt(Eigen::Vector3d position, double t) const
-{
-    return GetDataAt(Eigen::Vector4d(position.x(), position.y(), position.z(), t));
-}
-
 void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, std::vector<Eigen::Vector3d>& PathLine, const bool IgnoreBounds, const double StepSize, const float IntegrationTime, const unsigned int maxSteps)
 {
     std::clog << "Computing PathLine at " << WorldPosition << "\n";
 
-    Eigen::Vector4d CurrentPosition = WorldPosition;
-    Eigen::Vector3d FinalDestination = WorldPosition;
     Eigen::Vector3d CurPos3;
     unsigned int CurrentStep = 0;
 
     // Add starting / and (hopefully) final position: 
-    PathLine.push_back(FinalDestination);
+    PathLine.push_back(Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]));
 
-    VC::math::ode::Solution<double, VC::math::VecN<double, 3>> Solution;
-    IntegrateOverTimeVCLibsRK43(CurrentPosition, IntegrationTime, StepSize, &Solution);
+    Solution3D Solution;
+    IntegrateOverTime(WorldPosition, IntegrationTime, StepSize, &Solution);
 
     // add positions of solution to pathline array
-    for_each(Solution.y.begin(), Solution.y.end(), [&](VC::math::VecN<double, 3> currentVector)
+    for(auto position : Solution.y()) 
     {
-        PathLine.push_back(Eigen::Vector3d(currentVector.data())); // create Eigen::Vector3d from vclibs vector
-    });
+        PathLine.push_back(position);
+    }
+
 }
 
-const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const Eigen::Vector4d position, const double IntegrationTime, const double StepSize, const double CellSize) const
+const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const Eigen::Vector4d& position, const double IntegrationTime, const double StepSize, const double CellSize) const
 {
     // TODO: integrate over timestep ( pass time for integration to function!)
-    Eigen::Vector3d XHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d( CellSize, 0., 0., 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d XLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(-CellSize, 0., 0., 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d YHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0.,  CellSize, 0., 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d YLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., -CellSize, 0., 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d ZHi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0.,  CellSize, 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d ZLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., -CellSize, 0.), IntegrationTime, StepSize);
-    Eigen::Vector3d THi = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., 0.,  CellSize), IntegrationTime, StepSize);
-    Eigen::Vector3d TLo = IntegrateOverTimeVCLibsRK43(position + Eigen::Vector4d(0., 0., 0., -CellSize), IntegrationTime, StepSize);
+    Eigen::Vector3d XHi = IntegrateOverTime(position + Eigen::Vector4d( CellSize, 0., 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d XLo = IntegrateOverTime(position + Eigen::Vector4d(-CellSize, 0., 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d YHi = IntegrateOverTime(position + Eigen::Vector4d(0.,  CellSize, 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d YLo = IntegrateOverTime(position + Eigen::Vector4d(0., -CellSize, 0., 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d ZHi = IntegrateOverTime(position + Eigen::Vector4d(0., 0.,  CellSize, 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d ZLo = IntegrateOverTime(position + Eigen::Vector4d(0., 0., -CellSize, 0.), IntegrationTime, StepSize);
+    Eigen::Vector3d THi = IntegrateOverTime(position + Eigen::Vector4d(0., 0., 0.,  CellSize), IntegrationTime, StepSize);
+    Eigen::Vector3d TLo = IntegrateOverTime(position + Eigen::Vector4d(0., 0., 0., -CellSize), IntegrationTime, StepSize);
 
 
     Eigen::Vector3d dx = (XHi - XLo) / (2.0*CellSize);
@@ -106,46 +57,34 @@ const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const E
     return ResultGradient;
 }
 
-Eigen::Vector3d AnalyticField::IntegrateOverTimeVCLibsRK43(const Eigen::Vector4d & WorldPosition, const double IntegrationTime, const double StepSize, VC::math::ode::Solution<double, VC::math::VecN<double, 3>>* Solution, int MaximumSteps) const
+Eigen::Vector3d AnalyticField::IntegrateOverTime(const Eigen::Vector4d& WorldPosition, const double IntegrationTime, const double StepSize, Solution3D* Solution, double absoluteError, double relativeError) const
 {
-    VC::math::ode::RK43<Evaluator> rk43;
-    VC::math::ode::Solution<double, VC::math::VecN<double, 3>>* Sol;
-    VC::math::ode::EvalState state;
-    Evaluator eval = Evaluator(this);
-    rk43.options.hmax = 0.1;
-    rk43.options.rsmin = 1e-24;
+    namespace boost_ode = boost::numeric::odeint;
+    //integrate_adaptive only returns number of steps. needs observer to return something. 
+    // if we are only interested in the last value, use custom observer that only saves the last value. 
 
-    if (Solution) {
+    if (Solution == nullptr)         
+    {
+        Eigen::Vector3d finalPosition;
+        // function call takes: Integrator, integration function, start position, start time, end time, step size, observer function (save result)
+        //returns number of steps as size_t.
+        boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize,
+            [&finalPosition](const Eigen::Vector3d &integratedPosition, double integratedTime)
+        {
+            finalPosition = integratedPosition;
+        });
+        // uses Lambda function to save
 
-        Sol = Solution;
+        return finalPosition;
     }
-    else {
-        Sol = new VC::math::ode::Solution<double, VC::math::VecN<double, 3>>();
+    else         
+    {
+        //returns number of steps as size_t. (could use for debugging info)
+        boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize, mogObserver(*Solution));
+
+        return Solution->y().back();
     }
+    
 
-
-    if (MaximumSteps) {
-        state = rk43.integrate(&eval, VC::math::VecN<double, 3>(WorldPosition(0), WorldPosition(1), WorldPosition(2)), WorldPosition(3), WorldPosition(3) + IntegrationTime, Sol, false, MaximumSteps);
-    }
-    else {
-        state = rk43.integrate(&eval, VC::math::VecN<double, 3>(WorldPosition(0), WorldPosition(1), WorldPosition(2)), WorldPosition(3), WorldPosition(3) + IntegrationTime, Sol);
-    }
-
-    if (state && state != VC::math::ode::Success) {
-        //UE_LOG(GeneralFC, Error, TEXT("Integration failed: %s"), ANSI_TO_TCHAR(VC::math::ode::StateStr[state]));
-
-        return Eigen::Vector3d(rk43.y().data());
-    }
-
-    /*// output solution
-    if (argc==0 || (argc>1 && argv[1][0]=='s'))
-    cout << sol << endl;
-    */
-    if (!Solution) {
-        delete Sol;
-    }
-
-
-
-    return (Eigen::Vector3d(rk43.y().data()));
+    return Eigen::Vector3d();
 }

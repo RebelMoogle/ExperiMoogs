@@ -1,6 +1,7 @@
 #include "RecirculationSurfaceUtils.h"
 #include <memory>
-#include <../ThirdParty/Eigen/EigenValues>
+#include <Eigen/EigenValues>
+#include <iostream>
 
 RecirculationSurfaceUtils::~RecirculationSurfaceUtils()
 {}
@@ -14,7 +15,7 @@ const mogDistanceResult RecirculationSurfaceUtils::FindSurfacePositionFrom(Vecto
     int numIterations = 0;
     mogDistanceResult result;
     result.MinPosition = StartPosition;
-    Eigen::Vector3d integratedPosition = FlowData.IntegrateOverTimeVCLibsRK43(StartPosition, StepSize);
+    Eigen::Vector3d integratedPosition = FlowData.IntegrateOverTime(StartPosition, StepSize);
     result.DistanceVector = integratedPosition - Eigen::Vector3d(StartPosition[0], StartPosition[1], StartPosition[2]);
     double Distance = result.DistanceVector.norm();
 
@@ -27,7 +28,7 @@ const mogDistanceResult RecirculationSurfaceUtils::FindSurfacePositionFrom(Vecto
     //UE_LOG(GeneralFC, Log, TEXT("Starting to find closest position on surface, with a starting StepSize / Error of %f and starting Distance of %f"), StepSize, OldDistance);
     do {
         StartPosition += ComputeGradientDescentToSurface(StartPosition, integratedPosition, StepSize) * StepSize;
-        integratedPosition = FlowData.IntegrateOverTimeVCLibsRK43(StartPosition, StepSize);
+        integratedPosition = FlowData.IntegrateOverTime(StartPosition, StepSize);
         Eigen::Vector3d NewDistanceVector = integratedPosition - Eigen::Vector3d(StartPosition[0], StartPosition[1], StartPosition[2]);
         double NewDistance = NewDistanceVector.norm();
 
@@ -60,7 +61,7 @@ const std::vector<mogDistanceResult>& RecirculationSurfaceUtils::GetDistances()
 {
     if (MinimumFutureDistances.size() > 0) {
         MinimumDistances.clear();
-        for (int i = 0; i < MinimumFutureDistances.size(); ++i) {
+        for (unsigned int i = 0; i < MinimumFutureDistances.size(); ++i) {
             MinimumDistances.push_back(MinimumFutureDistances[i].get());
         }
         MinimumFutureDistances.clear();
@@ -73,7 +74,7 @@ const std::vector<mogDistanceResult>& RecirculationSurfaceUtils::GetDistances()
     return MinimumDistances;
 }
 
-const Vector5 RecirculationSurfaceUtils::ComputeGradientDescentToSurface(const Vector5 & StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize) const
+const Vector5 RecirculationSurfaceUtils::ComputeGradientDescentToSurface(const Vector5 StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize) const
 {
     //Flowmap at position - position
     const Eigen::Vector3d Distance = IntegratedPosition - Eigen::Vector3d(StartVector(0), StartVector(1), StartVector(2));
@@ -133,7 +134,7 @@ mogEigenVectorValues RecirculationSurfaceUtils::ComputeEigenVectorsValuesAt(cons
     mogEigenVectorValues Result;
     Result.atPosition = SurfacePosition;
 
-    Eigen::Vector3d integratedPosition = FlowData.IntegrateOverTimeVCLibsRK43(SurfacePosition);
+    Eigen::Vector3d integratedPosition = FlowData.IntegrateOverTime(SurfacePosition);
 
     Eigen::Matrix<double, 3, 5> SurfaceMatrix = CreateSurfaceMatrixM(SurfacePosition, integratedPosition);
     Eigen::Matrix<double, 5, 5> GrowthMatrix = SurfaceMatrix.transpose() * SurfaceMatrix;
@@ -158,7 +159,7 @@ mogEigenVectorValues RecirculationSurfaceUtils::ComputeEigenVectorsValuesAt(cons
     return Result;
 }
 
-const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d MaxTimeTau, const UINT32 TimeSteps)
+const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d& MaxTimeTau, const unsigned int TimeSteps)
 {
     // Resolution, (timesteps)
     // min max. 
@@ -181,14 +182,14 @@ const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistan
             StartVector = (Vector5() << StartPosition[0], StartPosition[1], StartPosition[2], (StartPosition[3] + t * CellSizeT), (StartPosition[4] + tau * CellSizeTau)).finished();
             
             // distance can be calculated from DistanceVector on export
-            result.push_back(mogDistanceResult(StartVector, FlowData.IntegrateOverTimeVCLibsRK43(StartVector) - Eigen::Vector3d(StartPosition[0], StartPosition[1], StartPosition[2])));
+            result.push_back(mogDistanceResult(StartVector, FlowData.IntegrateOverTime(StartVector) - Eigen::Vector3d(StartPosition[0], StartPosition[1], StartPosition[2])));
         }
     }
 
     return result;
 }
 
-void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const UINT TimeSteps, const bool TauComparison)
+void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps, const bool TauComparison)
 {
     Eigen::Vector3d CellSizes;
     //check(GradientFieldResolution.GetMin() <= 0 && "Resolution axis invalid (needs to be greater than 0)");
@@ -209,7 +210,7 @@ void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 M
         for (int y = 0; y < parameters.FieldResolution.y(); y++) {
             for (int x = 0; x < parameters.FieldResolution.x(); x++) {
                 std::clog << "Adding task for pos. (" << x << y << z << std::endl; // flush immediately
-                VC::math::VecN<double, 3> StartVector3 = VC::math::VecN<double, 3>(MinVector[0] + x*CellSizes[0], MinVector[1] + y*CellSizes[1], MinVector[2] + z*CellSizes[2]);
+                Eigen::Vector3d StartVector3 = Eigen::Vector3d(MinVector[0] + x*CellSizes[0], MinVector[1] + y*CellSizes[1], MinVector[2] + z*CellSizes[2]);
                 MinimumFutureDistances.push_back(std::async(std::launch::async, [StartVector3, CellSizet, TauComparison, endTau, this]
                 {
                     return this->ComputeMinimumDistanceWithin(StartVector3, CellSizet, endTau, TauComparison);
@@ -223,13 +224,13 @@ void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 M
     }
 }
 
-mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const VC::math::VecN<double, 3> StartVector3, const double CellSize, double endTau, const bool TauComparison)
+mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const Eigen::Vector3d StartVector3, const double CellSize, double endTau, const bool TauComparison)
 {
     // Find smallest distance for varying t and Tau. 
     // save distance to file
     // all the times from minimum t to maximum t
     mogDistanceResult curResultData = mogDistanceResult();
-    typedef VC::math::ode::Solution<double, VC::math::VecN<double, 3>> Solution3D;
+
     // only need to go forward and backward and check all points in solution.
     if (endTau == 0.0) {
         endTau = fabs(parameters.MaximumBounds[3] - parameters.MinimumBounds[3]);
@@ -241,30 +242,30 @@ mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const 
     // got from minimum start time to maximum start time.
     for (int t = 0; (parameters.MinimumBounds[3] + t*CellSize) <= parameters.MaximumBounds[3]; t++) {
 
-        auto StartVector = (Vector5() << StartVector3[0], StartVector3[1], StartVector3[2], parameters.MinimumBounds[3] + static_cast<double>(t)*CellSize, endTau).finished();
+        Eigen::Vector4d StartVector = Eigen::Vector4d(StartVector3[0], StartVector3[1], StartVector3[2], parameters.MinimumBounds[3] + static_cast<double>(t)*CellSize);
         Solution3D currentSolution;
 
         //FORWARD
 
         // check if full integration is already minimum.
         double currentDistance;
-        Eigen::Vector3d currentDistanceVector = FlowData.IntegrateOverTimeVCLibsRK43(StartVector, CellSize*0.1, &currentSolution, 999999) - Eigen::Vector3d(StartVector3[0], StartVector3[1], StartVector3[2]);
+        Eigen::Vector3d currentDistanceVector = FlowData.IntegrateOverTime(StartVector, endTau, CellSize*0.1, &currentSolution) - Eigen::Vector3d(StartVector3[0], StartVector3[1], StartVector3[2]);
 
         double lastDistance = currentDistanceVector.norm();		// check all distances on integrated line for optimal minimum
         curResultData.DistanceVector = currentDistanceVector;
-        curResultData.MinPosition = StartVector; // this will be used if no recirculation can be found.
+        curResultData.MinPosition = (Vector5() << StartVector, endTau).finished(); // this will be used if no recirculation can be found.
         if (TauComparison) // we want to compare with other taus (one field only)
         {
-            for (int indexSol = 1; indexSol < currentSolution.size(); ++indexSol) 
+            for (unsigned int indexSol = 1; indexSol < currentSolution.size(); ++indexSol) 
             {
                 // get next distance and distance vector from solution (all points/positions of integration)
-                currentDistanceVector = Eigen::Vector3d((currentSolution.y[indexSol] - StartVector3).data());
+                currentDistanceVector = (currentSolution.y()[indexSol] - StartVector3);
                 currentDistance = currentDistanceVector.norm();
 
                 //first check if actually bending back to origin, then compare distance. (if the distance is only growing, it's not a recirculation.)
                 if (lastDistance > currentDistance && currentDistance  < curResultData.DistanceVector.norm()) {
                     curResultData.DistanceVector = currentDistanceVector;
-                    curResultData.MinPosition = (Vector5() << StartVector[0], StartVector[1], StartVector[2], StartVector[3], currentSolution.t[indexSol - 1] - StartVector[3]).finished();
+                    curResultData.MinPosition = (Vector5() << StartVector[0], StartVector[1], StartVector[2], StartVector[3], currentSolution.t()[indexSol - 1] - StartVector[3]).finished();
                 }
 
                 // save new distance for next iteration
@@ -277,7 +278,7 @@ mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const 
         }
 
 
-        currentSolution.clear();
+        // currentSolution should be removed / freed here anyway.
     }
 
     return curResultData;

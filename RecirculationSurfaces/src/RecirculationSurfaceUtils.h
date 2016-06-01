@@ -21,7 +21,7 @@ struct RecirculationParameters {
     double InitialIntegrationTime;
 
     /** Number of data points per Axis, odd numbers are best. */
-    UINT32 VerticesPerAxis;
+    unsigned int VerticesPerAxis;
 
     /** What step size should be used for the integration? */
     double InitialStepSize;
@@ -36,7 +36,7 @@ struct RecirculationParameters {
 
     /*	Computes number of seedpoints to use for Surface calculation. Will try to find best local minima for each point and choose the one with the least distance.
     0 means choose the given seed point and ignore minima.*/
-    UINT32 ComputeSeedPoint;
+    unsigned int ComputeSeedPoint;
 
     /*Resolution of the Field grid. Needs to be larger than 0*/
     Eigen::Vector3i FieldResolution;
@@ -66,10 +66,10 @@ public:
     /* Start Distance Calculation in threads
     * uses std::future for parralel computing. 
     * needs a current version of gcc to run correctly.  **/
-    void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const UINT TimeSteps = 11, const bool TauComparison = true);
+    void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps = 11, const bool TauComparison = true);
 
 private:
-    const Vector5 ComputeGradientDescentToSurface(const Vector5& StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize = 0.001) const;
+    const Vector5 ComputeGradientDescentToSurface(const Vector5 StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize = 0.001) const;
 
     const Eigen::Matrix<double, 3, 5> CreateSurfaceMatrixM(const Vector5 SurfacePosition, const Eigen::Vector3d IntegratedPosition, double StepSize = 0.001) const;
     mogEigenVectorValues ComputeEigenVectorsValuesAt(const Vector5 SurfacePosition, const bool DoNotFilter = false);
@@ -78,8 +78,8 @@ private:
     *	StartPosition contains Position and minimum starttime and integration period,
     *	MaxTimeTau holds the maximum Starttime and Integration period #
     *   Uses Timesteps as resolution*/
-    const std::vector<mogDistanceResult> ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d MaxTimeTau, const UINT32 TimeSteps);
-    mogDistanceResult ComputeMinimumDistanceWithin(const VC::math::VecN<double, 3> StartVector3, const double CellSize, double endTau, const bool TauComparison = true);
+    const std::vector<mogDistanceResult> ComputeAllDistancesFor(const Vector5 StartPosition, const Eigen::Vector2d& MaxTimeTau, const unsigned int TimeSteps);
+    mogDistanceResult ComputeMinimumDistanceWithin(const Eigen::Vector3d StartVector3, const double CellSize, double endTau, const bool TauComparison = true);
 
     std::vector<mogSurfaceResult> SurfaceVertices;
     std::vector<std::future<mogDistanceResult>> MinimumFutureDistances; // Minimum Distances of the whole 5d field at every 3d point.
