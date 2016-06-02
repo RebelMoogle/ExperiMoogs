@@ -236,3 +236,8 @@ _Pvt_Extensions
 .fake/
 
 # custom stuff
+.sln
+.vcxproj
+.vcxproj.filters
+.make
+.addons.make
