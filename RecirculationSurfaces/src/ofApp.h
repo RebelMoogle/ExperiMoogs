@@ -3,6 +3,11 @@
 #include "ofMain.h"
 #include <ofxGui.h>
 #include "TypesAndStructs.h"
+#include "AnalyticField.h"
+
+
+class ofPolyline;
+class ofxTextField;
 
 class ofApp : public ofBaseApp{
 
@@ -26,15 +31,20 @@ class ofApp : public ofBaseApp{
 	// load csv eigendata button
 	ofxPanel gui;
 	// button for loading exported surface data including first two eigenvectors and eigenvalues.
-	ofxButton LoadEigenCSV;
-	ofxFloatSlider DistanceThreshold;
-	ofxFloatSlider ArrowScale;
+	ofxButton computePathLine;
+    //ofxButton loadFlowData;
+    
+    // menu to choose analytic field
+
+
+    
 
 	ofEasyCam cam;
 
 	private:
-		bool surfaceLoaded = false;
-		std::vector<int> nearestIndices;
-		ofVec3f selectedVert = ofVec3f();
-		int selectedIndex = 0;
+        std::unique_ptr<AnalyticField> MyAnalyticField;
+        std::vector<ofPolyline> PathLines;
+        
+        // computes and adds pathline
+        void ComputeAndAddPathline();
 };

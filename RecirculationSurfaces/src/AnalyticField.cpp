@@ -1,4 +1,5 @@
 #include "AnalyticField.h"
+#include "ofPolyline.h"
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/external/eigen/eigen.hpp>
@@ -13,7 +14,7 @@ AnalyticField::~AnalyticField()
 {
 }
 
-void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, std::vector<Eigen::Vector3d>& PathLine, const bool IgnoreBounds, const double StepSize, const float IntegrationTime, const unsigned int maxSteps)
+void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, ofPolyline& PathLine, const bool IgnoreBounds, const double StepSize, const float IntegrationTime, const unsigned int maxSteps)
 {
     std::clog << "Computing PathLine at " << WorldPosition << "\n";
 
@@ -21,15 +22,15 @@ void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, std
     unsigned int CurrentStep = 0;
 
     // Add starting / and (hopefully) final position: 
-    PathLine.push_back(Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]));
+    PathLine.addVertex(WorldPosition[0], WorldPosition[1], WorldPosition[2]);
 
     Solution3D Solution;
     IntegrateOverTime(WorldPosition, IntegrationTime, StepSize, &Solution);
 
-    // add positions of solution to pathline array
+    // add positions of solution ofpolyline (of type)
     for(auto position : Solution.y()) 
     {
-        PathLine.push_back(position);
+        PathLine.addVertex(position(0), position(1), position(2));
     }
 
 }
@@ -57,30 +58,50 @@ const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const E
     return ResultGradient;
 }
 
-Eigen::Vector3d AnalyticField::IntegrateOverTime(const Eigen::Vector4d& WorldPosition, const double IntegrationTime, const double StepSize, Solution3D* Solution, double absoluteError, double relativeError) const
+Eigen::Vector3d AnalyticField::IntegrateOverTime(const Eigen::Vector4d& WorldPosition, const double IntegrationTime, const double StepSize, Solution3D* Solution, const int MaxSteps) const
 {
     namespace boost_ode = boost::numeric::odeint;
     //integrate_adaptive only returns number of steps. needs observer to return something. 
     // if we are only interested in the last value, use custom observer that only saves the last value. 
+     // default = 500
+
+
 
     if (Solution == nullptr)         
     {
         Eigen::Vector3d finalPosition;
+        int stepCount = 0;
         // function call takes: Integrator, integration function, start position, start time, end time, step size, observer function (save result)
         //returns number of steps as size_t.
-        boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize,
-            [&finalPosition](const Eigen::Vector3d &integratedPosition, double integratedTime)
-        {
-            finalPosition = integratedPosition;
-        });
+        try {
+            boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize,
+                [&finalPosition, &stepCount, &MaxSteps](const Eigen::Vector3d &integratedPosition, double integratedTime)
+            {
+                finalPosition = integratedPosition;
+                stepCount += 1;
+                if (stepCount > MaxSteps) {
+                    throw std::exception("Integration failed: Maximum step count reached."); // TODO: print current time as well.
+                }
+            });
+        }
+        catch (const std::exception& e) {
+            std::clog << e.what();
+        }
+
         // uses Lambda function to save
 
         return finalPosition;
     }
     else         
     {
-        //returns number of steps as size_t. (could use for debugging info)
-        boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize, mogObserver(*Solution));
+        try {
+            //returns number of steps as size_t. (could use for debugging info)
+            boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize, mogObserver(*Solution));
+        }
+        catch (const std::exception& e) {
+           std::clog << e.what();
+        }
+
 
         return Solution->y().back();
     }

@@ -7,6 +7,7 @@
 
 typedef Eigen::Matrix<double, 5, 1> Vector5;
 //typedef VC::math::ode::Solution<double, VC::math::VecN<double, 3>> Solution3D;
+
 struct mogSolution {
 
 private:
@@ -57,15 +58,24 @@ private:
     // only allow const access.
     // positions
     Solution3D& m_results;
+    const unsigned int m_MaxSteps;
+    unsigned int stepCount = 0;
 
 public:
-    mogObserver(Solution3D& results)
-        : m_results(results)
+    mogObserver(Solution3D& results, const unsigned int MaxSteps = UINT_MAX)
+        : m_results(results), m_MaxSteps(MaxSteps)
     {}
 
     void operator()(const Eigen::Vector3d &integratedPosition, double integratedTime)
     {
         m_results.append(integratedPosition, integratedTime);
+
+        // check steps.
+        stepCount += 1;
+        if (stepCount > m_MaxSteps) {
+            stepCount = 0;
+            throw std::exception("Integration failed, maximum steps reached."); //TODO: print time as well.
+        }
     }
 };
 

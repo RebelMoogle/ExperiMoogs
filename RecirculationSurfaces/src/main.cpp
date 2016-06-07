@@ -1,17 +1,20 @@
+#include "ofMain.h"
+#include "ofApp.h"
+
 
 //========================================================================
 int main( ){
 	
-    // setup opengl
+    // setup opengl 
+    ofGLWindowSettings settings;
+    settings.setGLVersion(4, 5);
+    ofCreateWindow(settings);
 
-    // create window
+    // this kicks off the running of my app
+    // can be OF_WINDOW or OF_FULLSCREEN
+    // pass in width and height too:
+    return ofRunApp(new ofApp());
 
-    // start app (imgui)
-
-    // rendering?? -> (bgfx, pure openGL?)
-
-
-    return 0;
 }
 
 // TODO: write (unit) tests for Recirculation and Analyticfield functionality.
