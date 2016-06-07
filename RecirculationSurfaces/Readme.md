@@ -8,7 +8,7 @@ Everything else is header only.
 
 *Boost::numeric::odeint 
 odeint required as well. (Either install boost completely, or get just odeint sources: https://headmyshoulder.github.io/odeint-v2/)
-odeint is header-only, so no compile or binaries required.
+odeint is header-only, but seems to require some lib files anyway. :/
 
 *Eigen
 Eigen is also header only and included in the repo (under ThirdParty)
@@ -19,8 +19,10 @@ Include Directories:
 *(PROJECT_DIR)\ThirdParty
 *BOOST ROOT DIRECTORY (BOOST_ROOT path variable?
 
+Library Directories: (Linker)
+*(BOOST_ROOT)\<PLATFORM LIBRARY FILES> --> might need to download these from the boost site or compile yourself.
 
-(vclibs currently not in use, since it requires compilation and is not trivial to set up and get working. :/ )
+(vclibs currently not in use, since it requires compilation and is not trivial to set up and get working (on Win). :/ )
 
 Setup: 
 

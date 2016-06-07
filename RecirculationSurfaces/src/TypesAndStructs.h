@@ -24,7 +24,7 @@ public:
         : m_states(states), m_times(times)
     {}
 
-    int size() const
+    size_t size() const
     {
         assert(m_states.size() == m_times.size() && "Element count of both positions and times should be the same!");
         return m_states.size();

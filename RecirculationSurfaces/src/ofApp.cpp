@@ -129,8 +129,3 @@ void ofApp::dragEvent(ofDragInfo dragInfo)
 {
 
 }
-\ No newline at end of file
-Moving to boost odeint
-
-Integrated boost::numeric::odeint
-->next testing
