@@ -80,7 +80,7 @@ Eigen::Vector3d AnalyticField::IntegrateOverTime(const Eigen::Vector4d& WorldPos
                 finalPosition = integratedPosition;
                 stepCount += 1;
                 if (stepCount > MaxSteps) {
-                    throw std::exception("Integration failed: Maximum step count reached."); // TODO: print current time as well.
+                    throw std::exception("Integration failed: Maximum step count reached. \n"); // TODO: print current time as well.
                 }
             });
         }
@@ -96,7 +96,7 @@ Eigen::Vector3d AnalyticField::IntegrateOverTime(const Eigen::Vector4d& WorldPos
     {
         try {
             //returns number of steps as size_t. (could use for debugging info)
-            boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize, mogObserver(*Solution));
+            boost_ode::integrate<double>(*this, Eigen::Vector3d(WorldPosition[0], WorldPosition[1], WorldPosition[2]), WorldPosition[3], WorldPosition[3] + IntegrationTime, StepSize, mogObserver(*Solution, MaxSteps));
         }
         catch (const std::exception& e) {
            std::clog << e.what();

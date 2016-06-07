@@ -74,7 +74,7 @@ public:
         stepCount += 1;
         if (stepCount > m_MaxSteps) {
             stepCount = 0;
-            throw std::exception("Integration failed, maximum steps reached."); //TODO: print time as well.
+            throw std::exception("Integration failed, maximum steps reached. \n"); //TODO: print time as well.
         }
     }
 };
