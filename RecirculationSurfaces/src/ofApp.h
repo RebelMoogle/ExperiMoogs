@@ -4,6 +4,7 @@
 #include <ofxGui.h>
 #include "TypesAndStructs.h"
 #include "AnalyticField.h"
+#include <future>
 
 
 class ofPolyline;
@@ -30,6 +31,7 @@ class ofApp : public ofBaseApp{
 		
 	// load csv eigendata button
 	ofxPanel gui;
+    ofxLabel CamPos;
 	// button for loading exported surface data including first two eigenvectors and eigenvalues.
 	ofxButton computePathLine;
     //ofxButton loadFlowData;
@@ -41,10 +43,20 @@ class ofApp : public ofBaseApp{
 
 	ofEasyCam cam;
 
+    ofLight sun;
+    ofMaterial material;
+
 	private:
         std::unique_ptr<AnalyticField> MyAnalyticField;
         std::vector<ofPolyline> PathLines;
-        
+        std::vector<std::future<ofPolyline>> futurePathLines;
+
         // computes and adds pathline
-        void ComputeAndAddPathline();
+        void OnComputePathLinePress();
+
+        ofPolyline ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
+
+
+
+
 };
