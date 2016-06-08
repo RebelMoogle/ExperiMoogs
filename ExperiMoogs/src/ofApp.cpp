@@ -3,15 +3,31 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofSetVerticalSync(true);
+	ofSetSmoothLighting(true);
+	glDisable(GL_CULL_FACE);
+	ofEnableLighting();
 
-	RandomColor.addListener(this, &ofApp::ChangeToRandomColor);
+
+	loadMeshButton.addListener(this, &ofApp::loadMesh);
 
 	gui.setup();
-	gui.add(RandomColor.setup("Random Color"));
-	gui.add(ChangeTime.setup("color changing period", 1, 0.1, 10));
-	gui.add(ChooseColor.setup("color", ofColor(100, 100, 140), ofColor(0, 0, 0), ofColor(255, 255, 255)));
+	gui.add(loadMeshButton.setup("Load Mesh"));
 
+	cam.setAutoDistance(true);
+	cam.enableMouseInput();
+	cam.setNearClip(0.001);
+	cam.setFarClip(10000.0);
+	cam.setPosition(ofVec3f(0, 0, -1));
 
+	
+	sun.setDirectional();
+	sun.setAmbientColor(ofFloatColor::grey);
+	sun.setAttenuation();
+	sun.setDiffuseColor(ofFloatColor::white);
+	sun.setPosition(10, 10, 10);
+	sun.setSpecularColor(ofFloatColor::cyan);
+	sun.setOrientation(ofVec3f(30, 30, 0));
+	sun.setup();
 
 }
 
@@ -20,22 +36,32 @@ void ofApp::update(){
 
 	auto delta = ofGetLastFrameTime();
 
-	if(remainingTime < ChangeTime)
-	{
-		currentColor.lerp(nextColor, delta / ChangeTime);
-		remainingTime += delta; // should be in seconds?
-	}
-	else
-	{
-		ChangeToRandomColor();
-	}
-
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	ofBackgroundGradient(currentColor, ChooseColor);
+	ofBackgroundGradient(ofColor::skyBlue, ofColor::darkBlue);
 
+
+	ofEnableDepthTest();
+	sun.enable();
+	cam.begin();
+	if(loadedMesh.hasMeshes())
+	{
+		loadedMesh.enableMaterials();
+		loadedMesh.enableNormals();
+		loadedMesh.enableTextures();
+		loadedMesh.enableColors();
+		loadedMesh.drawFaces();
+		loadedMesh.disableMaterials();
+		loadedMesh.disableNormals();
+		loadedMesh.disableTextures();
+		loadedMesh.disableColors();
+	}
+	cam.end();
+	sun.disable();
+
+	ofDisableDepthTest();
 	gui.draw();
 }
 
@@ -89,10 +115,25 @@ void ofApp::gotMessage(ofMessage msg){
 
 }
 
-void ofApp::ChangeToRandomColor()
+void ofApp::loadMesh()
 {
-	nextColor.set(ofRandom(0, 255), ofRandom(0, 255), ofRandom(0, 255));
-	remainingTime = 0;
+	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select 3D Model to load");
+	if(openFileResult.bSuccess)
+	{
+		ofLogVerbose() << "File Selected: " << openFileResult.fileName;
+	}
+	else
+	{
+		ofSystemAlertDialog("Loading file cancelled or failed.");
+		return;
+	}
+
+
+	if(loadedMesh.loadModel(openFileResult.filePath))
+	{
+		ofLogVerbose() << "Model loaded successfully: " << loadedMesh.getMeshNames()[0];
+	}
+	cam.setTarget(loadedMesh.getPosition());
 }
 
 //--------------------------------------------------------------

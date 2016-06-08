@@ -3,7 +3,12 @@
 #include "ofMain.h"
 #include <ofxGui.h>
 #include "TypesAndStructs.h"
-#include "ImportPly.h"
+#include "AnalyticField.h"
+#include <future>
+
+
+class ofPolyline;
+class ofxTextField;
 
 class ofApp : public ofBaseApp{
 
@@ -26,17 +31,32 @@ class ofApp : public ofBaseApp{
 		
 	// load csv eigendata button
 	ofxPanel gui;
+    ofxLabel CamPos;
 	// button for loading exported surface data including first two eigenvectors and eigenvalues.
-	ofxButton LoadEigenCSV;
-	ofxFloatSlider DistanceThreshold;
-	ofxFloatSlider ArrowScale;
+	ofxButton computePathLine;
+    //ofxButton loadFlowData;
+    
+    // menu to choose analytic field
+
+
+    
 
 	ofEasyCam cam;
 
+    ofLight sun;
+    ofMaterial material;
+
 	private:
-		void LoadSurfaceEigenData();
-		mogCloudEigenVals SurfaceData;
-		bool surfaceLoaded = false;
-		std::vector<int> nearestIndices;
-		ofVec3f selectedVert;
+        std::unique_ptr<AnalyticField> MyAnalyticField;
+        std::vector<ofPolyline> PathLines;
+        std::vector<std::future<ofPolyline>> futurePathLines;
+
+        // computes and adds pathline
+        void OnComputePathLinePress();
+
+        ofPolyline ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
+
+
+
+
 };

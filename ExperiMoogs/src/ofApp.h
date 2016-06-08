@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "ofxAssimpModelLoader.h"
 
 class ofApp : public ofBaseApp{
 
@@ -22,16 +23,14 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		void ChangeToRandomColor();
+		void loadMesh();
 		
 		ofxPanel gui;
-		ofxFloatSlider ChangeTime;
-		ofxButton RandomColor;
-		ofxColorSlider ChooseColor;
+		ofxButton loadMeshButton;
+		ofLight sun;
+		ofxAssimpModelLoader loadedMesh;
+
+		ofEasyCam cam;
 
 	private:
-
-		ofColor currentColor = ofColor::black;
-		ofColor nextColor = ofColor::black;
-		float remainingTime = 0;
 };

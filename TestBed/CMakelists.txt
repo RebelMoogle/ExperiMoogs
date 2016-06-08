@@ -1,0 +1,4 @@
+
+Project(TestBed)
+
+add_executable(TestBed program.cpp)
