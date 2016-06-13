@@ -15,9 +15,9 @@ void ofApp::setup()
     sun.setOrientation(ofVec3f(15, 30, 0));
 
     // shininess is a value between 0 - 128, 128 being the most shiny //
+    material.setColors(ofFloatColor::yellow, ofFloatColor::lightYellow, ofFloatColor::white, ofFloatColor::black);
     material.setShininess(120);
     // the light highlight of the material //
-    material.setSpecularColor(ofColor(255, 255, 255, 255));
 
     // AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula);
     MyAnalyticField = make_unique<AnalyticField>("DoubleGyre3D", FlowData::DoubleGyre3D);
@@ -85,12 +85,12 @@ void ofApp::draw()
 
     ofSetColor(ofColor::yellow);
     ofSetLineWidth(3);
-    material.begin();
+    //material.begin();
 
     for (auto curLine : PathLines) {
         curLine.draw();
     }
-    material.end();
+    //material.end();
     ofSetLineWidth(1);
 
     cam.end();
@@ -183,7 +183,7 @@ void ofApp::OnComputePathLinePress()
     // create 10 * 10 * 10 pathlines, with 0.1 stepsize
 
     for (int x = 0; x < 10; ++x) {
-        for (int y = 0; y < 20; ++y) {
+        for (int y = 0; y < 10; ++y) {
             for (int z = 0; z < 10; ++z) {
                 futurePathLines.push_back(std::async(std::launch::async, [x, y, z, stepSize, this]
                 {
