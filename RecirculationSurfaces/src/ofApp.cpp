@@ -7,6 +7,9 @@ void ofApp::setup()
 {
     ofSetSmoothLighting(true);
 
+
+    IllumLines.load("simple");
+
     sun.setup();
     sun.setDirectional();
     sun.setAmbientColor(ofFloatColor(0.1, 0.1, 0.1));
@@ -19,15 +22,17 @@ void ofApp::setup()
     material.setShininess(120);
     // the light highlight of the material //
 
-    // AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula);
+    // AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula
     MyAnalyticField = make_unique<AnalyticField>("DoubleGyre3D", FlowData::DoubleGyre3D);
     computePathLine.addListener(this, &ofApp::OnComputePathLinePress);
+	reloadShader.addListener(this, &ofApp::OnShaderReload);
 
 
 
     gui.setup();
 
     // button for calculating pathline
+	gui.add(reloadShader.setup("Reload Shader"));
     gui.add(computePathLine.setup("Compute Pathline"));
     gui.add(CamPos.setup("Camera Position", "Camera Position"));
 
@@ -57,7 +62,22 @@ void ofApp::update()
     if (!futurePathLines.empty())
     {
         if (futurePathLines.front().valid()) {
-            PathLines.push_back(futurePathLines.front().get());
+            ofPolyline tempPolyline = futurePathLines.front().get();
+			// convert to vertex and index buffer?
+			// need vertex, normal, index?
+			ofMesh tempMeshline;
+			tempMeshline.disableIndices();
+			tempMeshline.setMode(ofPrimitiveMode::OF_PRIMITIVE_LINE_STRIP); // draw as line strip
+			tempMeshline.addVertices(tempPolyline.getVertices());
+			for (int pointIndex = 0; pointIndex < tempPolyline.size(); ++pointIndex) {
+				tempMeshline.addNormal(tempPolyline.getNormalAtIndex(pointIndex));
+				ofVec2f ofTexCoord = ofVec2f(static_cast<float>(pointIndex) / static_cast<float>(tempPolyline.size()), 0.0f);
+				tempMeshline.addTexCoord(ofTexCoord);
+			}
+
+
+			PathLines.push_back(tempPolyline);
+			LineMeshes.push_back(tempMeshline);
         }
         else {
             // remove if invalid.
@@ -76,23 +96,26 @@ void ofApp::draw()
     ofEnableLighting();
     sun.enable();
     cam.begin();
-
-    ofSetColor(ofColor::white);
-    // TODO: render surface 
+	
+	// TODO: render surface 
     // TODO: display distances 
+
+    
 
     ofDrawGrid(0.1f, 10, true);
 
     ofSetColor(ofColor::yellow);
     ofSetLineWidth(3);
     //material.begin();
-
-    for (auto curLine : PathLines) {
-        curLine.draw();
-    }
+	IllumLines.begin();
+		for (auto curLine : LineMeshes) {
+			curLine.draw();
+		}
+	IllumLines.end();
     //material.end();
     ofSetLineWidth(1);
 
+	
     cam.end();
     sun.disable();
     ofDisableLighting();
@@ -182,7 +205,7 @@ void ofApp::OnComputePathLinePress()
 
     // create 10 * 10 * 10 pathlines, with 0.1 stepsize
 
-    for (int x = 0; x < 10; ++x) {
+    for (int x = 10; x < 20; ++x) {
         for (int y = 0; y < 10; ++y) {
             for (int z = 0; z < 10; ++z) {
                 futurePathLines.push_back(std::async(std::launch::async, [x, y, z, stepSize, this]
@@ -192,6 +215,16 @@ void ofApp::OnComputePathLinePress()
             } // for z
         } // for y
     } // for x
+}
+
+void ofApp::OnShaderReload()
+{
+	ofLogNotice() << "Reloading Shader.";
+	IllumLines.load("simple");
+	GLenum glError = glGetError();
+	if (glError != GL_NO_ERROR) {
+		ofLogNotice() << "Error while loading shader: " << glewGetErrorString(glError);
+	}
 }
 
 ofPolyline ofApp::ComputeAndAddPathline(const double x, const double y, const double z, const double t)
