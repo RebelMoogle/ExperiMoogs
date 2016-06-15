@@ -8,7 +8,9 @@ void ofApp::setup()
     ofSetSmoothLighting(true);
 
 
-    IllumLines.load("simple");
+	OnShaderReload();
+
+	testSphere.setRadius(1.0);
 
     sun.setup();
     sun.setDirectional();
@@ -16,11 +18,6 @@ void ofApp::setup()
     sun.setDiffuseColor(ofFloatColor(1, 1, 1));
     sun.setSpecularColor(ofFloatColor(1, 1, 1));
     sun.setOrientation(ofVec3f(15, 30, 0));
-
-    // shininess is a value between 0 - 128, 128 being the most shiny //
-    material.setColors(ofFloatColor::yellow, ofFloatColor::lightYellow, ofFloatColor::white, ofFloatColor::black);
-    material.setShininess(120);
-    // the light highlight of the material //
 
     // AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula
     MyAnalyticField = make_unique<AnalyticField>("DoubleGyre3D", FlowData::DoubleGyre3D);
@@ -70,7 +67,7 @@ void ofApp::update()
 			tempMeshline.setMode(ofPrimitiveMode::OF_PRIMITIVE_LINE_STRIP); // draw as line strip
 			tempMeshline.addVertices(tempPolyline.getVertices());
 			for (int pointIndex = 0; pointIndex < tempPolyline.size(); ++pointIndex) {
-				tempMeshline.addNormal(tempPolyline.getNormalAtIndex(pointIndex));
+				tempMeshline.addNormal(tempPolyline.getTangentAtIndex(pointIndex));
 				ofVec2f ofTexCoord = ofVec2f(static_cast<float>(pointIndex) / static_cast<float>(tempPolyline.size()), 0.0f);
 				tempMeshline.addTexCoord(ofTexCoord);
 			}
@@ -100,25 +97,29 @@ void ofApp::draw()
 	// TODO: render surface 
     // TODO: display distances 
 
-    
+
+	ofEnableDepthTest();
 
     ofDrawGrid(0.1f, 10, true);
 
     ofSetColor(ofColor::yellow);
     ofSetLineWidth(3);
-    //material.begin();
+
+	
 	IllumLines.begin();
+	IllumLines.setUniform4fv("shaderColor", ofFloatColor::lightSteelBlue.v);
+	IllumLines.setUniform3f("camDirection", cam.getLookAtDir());
 		for (auto curLine : LineMeshes) {
 			curLine.draw();
 		}
 	IllumLines.end();
-    //material.end();
     ofSetLineWidth(1);
 
 	
     cam.end();
     sun.disable();
     ofDisableLighting();
+	ofDisableDepthTest();
 
     ofSetColor(ofColor::white);
 
@@ -205,7 +206,7 @@ void ofApp::OnComputePathLinePress()
 
     // create 10 * 10 * 10 pathlines, with 0.1 stepsize
 
-    for (int x = 10; x < 20; ++x) {
+    for (int x = 0; x < 20; x+=2) {
         for (int y = 0; y < 10; ++y) {
             for (int z = 0; z < 10; ++z) {
                 futurePathLines.push_back(std::async(std::launch::async, [x, y, z, stepSize, this]
@@ -225,6 +226,7 @@ void ofApp::OnShaderReload()
 	if (glError != GL_NO_ERROR) {
 		ofLogNotice() << "Error while loading shader: " << glewGetErrorString(glError);
 	}
+	
 }
 
 ofPolyline ofApp::ComputeAndAddPathline(const double x, const double y, const double z, const double t)

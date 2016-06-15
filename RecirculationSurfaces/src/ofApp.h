@@ -48,7 +48,7 @@ private:
 	ofEasyCam cam;
 
     ofLight sun;
-    ofMaterial material;
+	ofSpherePrimitive testSphere;
     std::unique_ptr<AnalyticField> MyAnalyticField;
     std::vector<ofPolyline> PathLines;
 	std::vector<ofMesh> LineMeshes;
