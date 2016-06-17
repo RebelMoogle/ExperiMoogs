@@ -29,7 +29,8 @@ public:
 	// Can try to compute outside of bounding box if IgnoreBounds is true.
 	//TODO make FRunnable to perform in threads
 	// FORWARD ONLY
-	void ComputePathLineAt(const Eigen::Vector4d& WorldPosition, ofPolyline& PathLine, const bool IgnoreBounds = false, const double StepSize = 0.1, const float IntegrationTime = FLT_MAX, const unsigned int maxSteps = 100000);
+	void ComputePathLineAt(const Eigen::Vector4d& WorldPosition, ofPolyline& PathLine, std::vector<double>* const times = nullptr, const bool IgnoreBounds = false, const double StepSize = 0.1, const float IntegrationTime = FLT_MAX, const unsigned int maxSteps = 100000);
+	
 
     const Eigen::Matrix<double, 3, 4> ComputeFlowGradientTime(const Eigen::Vector4d& position, const double IntegrationTime, const double StepSize = 0.001, const double CellSize = 0.0001) const;
 

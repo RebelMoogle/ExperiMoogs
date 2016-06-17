@@ -29,11 +29,15 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+private:
+
+    ofShader IllumLines;
 	// load csv eigendata button
 	ofxPanel gui;
     ofxLabel CamPos;
 	// button for loading exported surface data including first two eigenvectors and eigenvalues.
 	ofxButton computePathLine;
+	ofxButton reloadShader;
     //ofxButton loadFlowData;
     
     // menu to choose analytic field
@@ -44,17 +48,18 @@ class ofApp : public ofBaseApp{
 	ofEasyCam cam;
 
     ofLight sun;
-    ofMaterial material;
+	ofSpherePrimitive testSphere;
+    std::unique_ptr<AnalyticField> MyAnalyticField;
+	std::vector<ofPolyline> Pathlines;
+	std::vector<ofMesh> LineMeshes;
+	std::vector < std::future< PathlineTimes> > futurePathLines;
 
-	private:
-        std::unique_ptr<AnalyticField> MyAnalyticField;
-        std::vector<ofPolyline> PathLines;
-        std::vector<std::future<ofPolyline>> futurePathLines;
+    // computes and adds pathline
+    void OnComputePathLinePress();
+	void OnShaderReload();
 
-        // computes and adds pathline
-        void OnComputePathLinePress();
-
-        ofPolyline ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
+	PathlineTimes ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
+	
 
 
 

@@ -16,9 +16,9 @@ namespace FlowData {
 
         output(0) = -(1.0 / 10.0)*std::sin((1.0 / 4.0)*pi*x*(std::sin((1.0 / 5.0)*pi*t)*x + 4.0 - 2.0 * std::sin((1.0 / 5.0)*pi*t)))*std::cos(pi*y)*pi;
 
-        output(1) = (1. / 20.)*pi*std::cos((1. / 4.)*pi*x*(std::sin((1. / 5.)*pi*t)*x + 4. - 2. * std::sin((1. / 5.)*pi*t)))*(std::sin((1. / 5.)*pi*t)*x + 2. - std::sin((1. / 5.)*pi*t))*std::sin(pi*y);
+        output(1) = (1.0 / 20.0)*pi*std::cos((1.0 / 4.0)*pi*x*(std::sin((1.0 / 5.0)*pi*t)*x + 4.0 - 2.0 * std::sin((1.0 / 5.0)*pi*t)))*(std::sin((1.0 / 5.0)*pi*t)*x + 2.0 - std::sin((1.0 / 5.0)*pi*t))*std::sin(pi*y);
 
-        output(2) = (1. / 5.)*z*(1. - z)*(z - (1. / 4.)*std::sin((2. / 5.)*pi*t) + 1. / 2.);
+        output(2) = (1.0 / 5.0)*z*(1.0 - z)*(z - (1.0 / 4.0)*std::sin((2.0 / 5.0)*pi*t) + 1.0 / 2.0);
 
         return output;
     }
