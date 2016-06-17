@@ -59,21 +59,27 @@ void ofApp::update()
     if (!futurePathLines.empty())
     {
         if (futurePathLines.front().valid()) {
-            ofPolyline tempPolyline = futurePathLines.front().get();
+			PathlineTimes pathline = futurePathLines.front().get();
+			Pathlines.push_back(std::get<0>(pathline));
+			std::vector<double>& times = std::get<1>(pathline);
 			// convert to vertex and index buffer?
 			// need vertex, normal, index?
 			ofMesh tempMeshline;
 			tempMeshline.disableIndices();
 			tempMeshline.setMode(ofPrimitiveMode::OF_PRIMITIVE_LINE_STRIP); // draw as line strip
-			tempMeshline.addVertices(tempPolyline.getVertices());
-			for (int pointIndex = 0; pointIndex < tempPolyline.size(); ++pointIndex) {
-				tempMeshline.addNormal(tempPolyline.getTangentAtIndex(pointIndex));
-				ofVec2f ofTexCoord = ofVec2f(static_cast<float>(pointIndex) / static_cast<float>(tempPolyline.size()), 0.0f);
+			tempMeshline.addVertices(Pathlines.back().getVertices());
+			for (int pointIndex = 1; pointIndex < times.size(); ++pointIndex) {
+
+				//TODO: FIX!
+				//ofVec3f pointPos = GetVec3fFrom(polylineSolution.y()[pointIndex]);
+				
+				tempMeshline.addNormal(Pathlines.back().getNormalAtIndexInterpolated(pointIndex));
+				ofVec2f ofTexCoord = ofVec2f(	static_cast<float>(pointIndex) / static_cast<float>(times.size()), 
+												times[pointIndex] / times.back());
 				tempMeshline.addTexCoord(ofTexCoord);
 			}
 
 
-			PathLines.push_back(tempPolyline);
 			LineMeshes.push_back(tempMeshline);
         }
         else {
@@ -109,6 +115,7 @@ void ofApp::draw()
 	IllumLines.begin();
 	IllumLines.setUniform4fv("shaderColor", ofFloatColor::lightSteelBlue.v);
 	IllumLines.setUniform3f("camDirection", cam.getLookAtDir());
+	IllumLines.setUniform3f("camPosition", cam.getPosition());
 		for (auto curLine : LineMeshes) {
 			curLine.draw();
 		}
@@ -229,15 +236,15 @@ void ofApp::OnShaderReload()
 	
 }
 
-ofPolyline ofApp::ComputeAndAddPathline(const double x, const double y, const double z, const double t)
+PathlineTimes ofApp::ComputeAndAddPathline(const double x, const double y, const double z, const double t)
 {
     if (!MyAnalyticField) {
         throw std::exception("Analytic Flow Data not set!");
     }
-    ofPolyline pathline;
-    MyAnalyticField->ComputePathLineAt(Eigen::Vector4d(x, y, z, t), pathline);
-    return pathline;
-
+	ofPolyline pathline;
+	std::vector<double> times;
+    MyAnalyticField->ComputePathLineAt(Eigen::Vector4d(x, y, z, t), pathline, &times);
+    return std::make_tuple(pathline, times);
 }
              
 

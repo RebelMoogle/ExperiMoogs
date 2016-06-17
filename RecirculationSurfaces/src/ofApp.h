@@ -50,15 +50,15 @@ private:
     ofLight sun;
 	ofSpherePrimitive testSphere;
     std::unique_ptr<AnalyticField> MyAnalyticField;
-    std::vector<ofPolyline> PathLines;
+	std::vector<ofPolyline> Pathlines;
 	std::vector<ofMesh> LineMeshes;
-    std::vector<std::future<ofPolyline>> futurePathLines;
+	std::vector < std::future< PathlineTimes> > futurePathLines;
 
     // computes and adds pathline
     void OnComputePathLinePress();
 	void OnShaderReload();
 
-    ofPolyline ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
+	PathlineTimes ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
 	
 
 

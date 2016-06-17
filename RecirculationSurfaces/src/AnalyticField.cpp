@@ -14,7 +14,7 @@ AnalyticField::~AnalyticField()
 {
 }
 
-void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, ofPolyline& PathLine, const bool IgnoreBounds, const double StepSize, const float IntegrationTime, const unsigned int maxSteps)
+void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, ofPolyline& PathLine, std::vector<double>* const times, const bool IgnoreBounds, const double StepSize, const float IntegrationTime, const unsigned int maxSteps)
 {
     std::clog << "Computing PathLine at " << WorldPosition << "\n";
 
@@ -32,7 +32,9 @@ void AnalyticField::ComputePathLineAt(const Eigen::Vector4d & WorldPosition, ofP
     {
         PathLine.addVertex(position(0), position(1), position(2));
     }
-
+	if (times) {
+		*times = Solution.t();
+	}
 }
 
 const Eigen::Matrix<double, 3, 4> AnalyticField::ComputeFlowGradientTime(const Eigen::Vector4d& position, const double IntegrationTime, const double StepSize, const double CellSize) const

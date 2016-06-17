@@ -1,12 +1,16 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <tuple>
 #include <Eigen/Core>
+#include <ofPolyline.h>
 //#include <vclibs/include/math/VecN.hh>
 //#include <vclibs/include/math/ode.hh>
 
 typedef Eigen::Matrix<double, 5, 1> Vector5;
 //typedef VC::math::ode::Solution<double, VC::math::VecN<double, 3>> Solution3D;
+
+typedef std::tuple<ofPolyline, std::vector<double>> PathlineTimes;
 
 struct mogSolution {
 

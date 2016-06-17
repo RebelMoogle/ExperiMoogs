@@ -65,7 +65,7 @@ public:
 
     /* Start Distance Calculation in threads
     * uses std::future for parralel computing. 
-    * needs a current version of gcc to run correctly.  **/
+    * gcc: needs a current version of gcc to run correctly.  **/
     void StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps = 11, const bool TauComparison = true);
 
 private:
