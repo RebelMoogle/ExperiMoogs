@@ -20,9 +20,11 @@ void ofApp::setup()
     sun.setOrientation(ofVec3f(15, 30, 0));
 
     // AnalyticField(std::string fieldName, std::function<Eigen::Vector3d(const Eigen::Vector3d& x, Eigen::Vector3d& dxdt, const double t)> analyticFormula
-    MyAnalyticField = make_unique<AnalyticField>("DoubleGyre3D", FlowData::DoubleGyre3D);
+    Flow = make_unique<AnalyticField>("DoubleGyre3D", FlowData::DoubleGyre3D);
+	FlowTools = std::make_unique<RecirculationSurfaceUtils>(*Flow);
     computePathLine.addListener(this, &ofApp::OnComputePathLinePress);
 	reloadShader.addListener(this, &ofApp::OnShaderReload);
+	computeDistances.addListener(this, &ofApp::OnComputeDistances);
 
 
 
@@ -31,13 +33,15 @@ void ofApp::setup()
     // button for calculating pathline
 	gui.add(reloadShader.setup("Reload Shader"));
     gui.add(computePathLine.setup("Compute Pathline"));
+	gui.add(computeDistances.setup("Compute Distances"));
+	gui.add(RenderDistances.setup("Render Distances", false));
     gui.add(CamPos.setup("Camera Position", "Camera Position"));
 
-    // TODO: might have to make FlowData changeable. (pure pointer, have instance in main app).  
+    // TODO: might have to make FlowData changeable. (pure pointer, have instance in main App).  
     // choose / load FlowData button (choose from menu.) -> Later load from file. (Lua or Julia? )
     
 
-    // draw/calculate pathline button
+    // draw/calculate Pathline button
 
     cam.setAutoDistance(false);
     cam.enableMouseInput();
@@ -89,6 +93,7 @@ void ofApp::update()
     }
 
 
+
 }
 
 //-------------------------------------------------------------- 
@@ -102,6 +107,23 @@ void ofApp::draw()
 	
 	// TODO: render surface 
     // TODO: display distances 
+	if (RenderDistances) 		{
+		try {
+			if (!MinimumDistances) 			{ MinimumDistances = &FlowTools->GetDistances();}
+			// TODO: render distances.
+
+			// TODO: either render as colored point cloud
+			// or implement volume rendering. 
+			// both will require conversion of data.
+		}
+		catch (std::exception& e) {
+			std::string message = e.what();
+			message += " - Distances not available, did you start the calculation? \n";
+			ofLogWarning() << message;
+			ofSystemAlertDialog(message);
+			RenderDistances = false;
+		}
+	}
 
 
 	ofEnableDepthTest();
@@ -225,6 +247,12 @@ void ofApp::OnComputePathLinePress()
     } // for x
 }
 
+void ofApp::OnComputeDistances()
+{
+	ofLogNotice() << "Starting Distance Calculation. \n";
+	FlowTools->StartDistanceCalculation((Vector5()<< 0., 0., 0., 0., 0.1).finished(), (Vector5() << 2., 1., 1., 1., 5.).finished());
+}
+
 void ofApp::OnShaderReload()
 {
 	ofLogNotice() << "Reloading Shader.";
@@ -238,12 +266,12 @@ void ofApp::OnShaderReload()
 
 PathlineTimes ofApp::ComputeAndAddPathline(const double x, const double y, const double z, const double t)
 {
-    if (!MyAnalyticField) {
+    if (!Flow) {
         throw std::exception("Analytic Flow Data not set!");
     }
 	ofPolyline pathline;
 	std::vector<double> times;
-    MyAnalyticField->ComputePathLineAt(Eigen::Vector4d(x, y, z, t), pathline, &times);
+    Flow->ComputePathLineAt(Eigen::Vector4d(x, y, z, t), pathline, &times);
     return std::make_tuple(pathline, times);
 }
              

@@ -68,7 +68,7 @@ const std::vector<mogDistanceResult>& RecirculationSurfaceUtils::GetDistances()
     }
     else if (MinimumDistances.size() == 0) {
         // no calculation started
-        throw "Please start Distance Calculation first!";
+        throw std::exception("Please start Distance Calculation first!");
     }
 
     return MinimumDistances;
@@ -189,7 +189,7 @@ const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistan
     return result;
 }
 
-void RecirculationSurfaceUtils::StartDistanceCalculationThreaded(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps, const bool TauComparison)
+void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps, const bool TauComparison)
 {
     Eigen::Vector3d CellSizes;
     //check(GradientFieldResolution.GetMin() <= 0 && "Resolution axis invalid (needs to be greater than 0)");
