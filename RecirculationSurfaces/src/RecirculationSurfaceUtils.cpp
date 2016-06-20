@@ -209,8 +209,9 @@ void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector
     for (int z = 0; z < parameters.FieldResolution.z(); z++) {
         for (int y = 0; y < parameters.FieldResolution.y(); y++) {
             for (int x = 0; x < parameters.FieldResolution.x(); x++) {
-                std::clog << "Adding task for pos. (" << x << y << z << std::endl; // flush immediately
+                
                 Eigen::Vector3d StartVector3 = Eigen::Vector3d(MinVector[0] + x*CellSizes[0], MinVector[1] + y*CellSizes[1], MinVector[2] + z*CellSizes[2]);
+				std::clog << "Adding task for pos. (" << StartVector3.x() << ", " << StartVector3.y() << ", " << StartVector3.z() << ") " << std::endl; // flush immediately
                 MinimumFutureDistances.push_back(std::async(std::launch::async, [StartVector3, CellSizet, TauComparison, endTau, this]
                 {
                     return this->ComputeMinimumDistanceWithin(StartVector3, CellSizet, endTau, TauComparison);
@@ -254,6 +255,7 @@ mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const 
         double lastDistance = currentDistanceVector.norm();		// check all distances on integrated line for optimal minimum
         curResultData.DistanceVector = currentDistanceVector;
         curResultData.MinPosition = (Vector5() << StartVector, endTau).finished(); // this will be used if no recirculation can be found.
+		// TODO: Normal? -> EigenVectors?
         if (TauComparison) // we want to compare with other taus (one field only)
         {
             for (unsigned int indexSol = 1; indexSol < currentSolution.size(); ++indexSol) 
@@ -274,7 +276,7 @@ mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const 
         }
         else {
 
-            curResultData.myIntegration = std::make_unique<Solution3D>(currentSolution);
+            curResultData.myIntegration = currentSolution; // copy, NOTE: make more efficient if needed (unique ptr)
         }
 
 

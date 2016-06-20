@@ -33,6 +33,7 @@ class ofApp : public ofBaseApp{
 private:
 
     ofShader IllumLines;
+	ofShader PointCloudVolume;
 	// load csv eigendata button
 	ofxPanel gui;
     ofxLabel CamPos;
@@ -61,13 +62,14 @@ private:
     // computes and adds pathline
     void OnComputePathLinePress();
 	void OnComputeDistances();
+	void OnRenderDistances(const void* sender, bool& pressed);
 	void OnShaderReload();
 
 
 
 	PathlineTimes ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
 	
-	const std::vector<mogDistanceResult>* MinimumDistances = nullptr;
+	ofMesh MinimumDistances;
 
 
 
