@@ -12,10 +12,10 @@ void main()
 {
 // illuminated streamlines.
 
-	//outputColor = vec4(shaderColor.rgb, 1.0) * vec4(normalize(fragNormal.xyz), 1);
-	//vec4(fragTexcoord.x, 0.5, 0.5, 1.0- fragTexcoord.x);
-	// more color stages??#
-	//outputColor = vec4(fragTexcoord.y, 1.0-fragTexcoord.y, 0.0, 1.0);
+	// outputColor = vec4(shaderColor.rgb, 1.0) * vec4(normalize(fragNormal.xyz), 1);
+	// vec4(fragTexcoord.x, 0.5, 0.5, 1.0- fragTexcoord.x);
+	// //more color stages??#
+	// outputColor = vec4(fragTexcoord.y, 1.0-fragTexcoord.y, 0.0, 1.0);
 
 	float lambertian = max(dot(normalize(lightDir), normalize(fragNormal.xyz)), 0.0);
 	float specular = 0.0;
