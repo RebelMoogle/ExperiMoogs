@@ -39,6 +39,15 @@ private:
     ofxLabel CamPos;
 	// button for loading exported surface data including first two eigenvectors and eigenvalues.
 	ofxButton computePathLine;
+	ofxSlider<unsigned int> DistanceFieldsNoCmp;
+	// minimum distance field boundary, (x, y, z, t)
+	ofxSlider<ofVec4f> MinBounds;
+	// maximum distance field boundary (x, y, z, t)
+	ofxSlider<ofVec4f> MaxBounds;
+
+	//tau
+	ofxFloatSlider IntegrationTime;
+
 	ofxButton computeDistances;
 	ofxToggle RenderDistances;
 	ofxButton reloadShader;
@@ -70,7 +79,6 @@ private:
 	PathlineTimes ComputeAndAddPathline(const double x, const double y, const double z, const double t = 1.0);
 	
 	ofMesh MinimumDistances;
-
 
 
 };

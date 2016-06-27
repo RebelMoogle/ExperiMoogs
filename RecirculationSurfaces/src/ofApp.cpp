@@ -31,9 +31,17 @@ void ofApp::setup()
 
     gui.setup();
 
+ // TODO: add as parameter group for categories
+
     // button for calculating pathline
 	gui.add(reloadShader.setup("Reload Shader"));
     gui.add(computePathLine.setup("Compute Pathline"));
+	gui.add(MinBounds.setup("Minimum boundary for distance fields (x,y,z,t)", ofVec4f(0., 0., 0., 0.), ofVec4f(-100, -100, -100, -100), ofVec4f(100, 100, 100, 100)));
+
+	gui.add(MaxBounds.setup("Maximum boundary for distance fields (x,y,z,t)", ofVec4f(1., 1., 1., 1.), ofVec4f(-100, -100, -100, -100), ofVec4f(100, 100, 100, 100)));
+	gui.add(IntegrationTime.setup("Integration time tau", 0.0, -100.0, 100.0));
+
+	gui.add(DistanceFieldsNoCmp.setup("Number of Distance Fields with constant tau", 0, 0, 1000));
 	gui.add(computeDistances.setup("Compute Distances"));
 	gui.add(RenderDistances.setup("Render Distances", false));
     gui.add(CamPos.setup("Camera Position", "Camera Position"));
@@ -53,7 +61,7 @@ void ofApp::setup()
 
 	MinimumDistances.setMode(OF_PRIMITIVE_POINTS);
     glEnable(GL_POINT_SMOOTH); // use circular points instead of square points 
-    glPointSize(5); // make the points bigger 
+    glPointSize(4); // make the points bigger 
 }
 
 //-------------------------------------------------------------- 
@@ -235,9 +243,9 @@ void ofApp::OnComputePathLinePress()
 
     // create 10 * 10 * 10 pathlines, with 0.1 stepsize
 
-    for (int x = 0; x < 20; x+=2) {
-        for (int y = 0; y < 10; ++y) {
-            for (int z = 0; z < 10; ++z) {
+    for (int x = 1; x < 20; x+=2) {
+        for (int y = 0; y < 10; y+=2) {
+            for (int z = 1; z < 10; ++z) {
                 futurePathLines.push_back(std::async(std::launch::async, [x, y, z, stepSize, this]
                 {
                     return this->ComputeAndAddPathline(x * stepSize, y * stepSize, z * stepSize);
@@ -249,13 +257,24 @@ void ofApp::OnComputePathLinePress()
 
 void ofApp::OnComputeDistances()
 {
-	if (MinimumDistances.hasVertices()) 		{
+	if (MinimumDistances.hasVertices()) 		
+	{
 		ofLogNotice() << "Clearing previously calculated Distances.";
 		MinimumDistances.clear();
 	}
 
 	ofLogNotice() << "Starting Distance Calculation. \n";
-	FlowTools->StartDistanceCalculation((Vector5()<< 0., 0., 0., 0.1, 0.1).finished(), (Vector5() << 2., 1., 1., 1., 5.).finished());
+	FlowTools->StartDistanceCalculation(MinBounds, MaxBounds, IntegrationTime);
+
+	if (DistanceFieldsNoCmp > 0) 
+	{
+		ofLogNotice() << "Starting Distance Calculation without tau comparison for " << DistanceFieldsNoCmp << " distance fields. \n";
+		ofVec4f MinBTemp = MinBounds;
+		ofVec4f MaxBTemp = MaxBounds;
+
+
+	}
+
 }
 
 void ofApp::OnRenderDistances(const void* sender, bool& pressed)

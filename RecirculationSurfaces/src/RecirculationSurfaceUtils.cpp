@@ -189,7 +189,7 @@ const std::vector<mogDistanceResult> RecirculationSurfaceUtils::ComputeAllDistan
     return result;
 }
 
-void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps, const bool TauComparison)
+void RecirculationSurfaceUtils::StartDistanceCalculation(const ofVec4f MinVector, const ofVec4f MaxVector, const float tau, const unsigned int TimeSteps, const bool TauComparison)
 {
     Eigen::Vector3d CellSizes;
     //check(GradientFieldResolution.GetMin() <= 0 && "Resolution axis invalid (needs to be greater than 0)");
@@ -201,7 +201,6 @@ void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector
     if (CellSizet == 0.0)
         CellSizet = 1.0;
     // Tau stepsize varies with t.
-    double endTau = MaxVector[4];
 
     MinimumFutureDistances.clear(); // finish everything first. // should call destructor
 
@@ -212,9 +211,9 @@ void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector
                 
                 Eigen::Vector3d StartVector3 = Eigen::Vector3d(MinVector[0] + x*CellSizes[0], MinVector[1] + y*CellSizes[1], MinVector[2] + z*CellSizes[2]);
 				std::clog << "Adding task for pos. (" << StartVector3.x() << ", " << StartVector3.y() << ", " << StartVector3.z() << ") " << std::endl; // flush immediately
-                MinimumFutureDistances.push_back(std::async(std::launch::async, [StartVector3, CellSizet, TauComparison, endTau, this]
+                MinimumFutureDistances.push_back(std::async(std::launch::async, [StartVector3, CellSizet, TauComparison, tau, this]
                 {
-                    return this->ComputeMinimumDistanceWithin(StartVector3, CellSizet, endTau, TauComparison);
+                    return this->ComputeMinimumDistanceWithin(StartVector3, CellSizet, tau, TauComparison);
                 })); //async on VS should use thread pools or similar (not start more threads than hardware supports / reuse threads) 
                 // GCC / boost don't seem to implement it this way? (old GCC doesn't even start a new thread. :/ )
                 // http://stackoverflow.com/questions/15666443/which-stdasync-implementations-use-thread-pools
@@ -223,6 +222,8 @@ void RecirculationSurfaceUtils::StartDistanceCalculation(const Vector5 MinVector
             }
         }
     }
+
+
 }
 
 mogDistanceResult RecirculationSurfaceUtils::ComputeMinimumDistanceWithin(const Eigen::Vector3d StartVector3, const double CellSize, double endTau, const bool TauComparison)

@@ -65,10 +65,11 @@ public:
 
     /* Start Distance Calculation in threads
     * uses std::future for parralel computing. 
-    * gcc: needs a current version of gcc to run correctly.  **/
-    void StartDistanceCalculation(const Vector5 MinVector, const Vector5 MaxVector, const unsigned int TimeSteps = 11, const bool TauComparison = true);
+    * gcc: needs a current version of gcc (5+) to run correctly.  **/
+    void StartDistanceCalculation(const ofVec4f MinVector, const ofVec4f MaxVector, const float tau, const unsigned int TimeSteps = 11, const bool TauComparison = true);
 
 private:
+
     const Vector5 ComputeGradientDescentToSurface(const Vector5 StartVector, const Eigen::Vector3d IntegratedPosition, const double StepSize = 0.001) const;
 
     const Eigen::Matrix<double, 3, 5> CreateSurfaceMatrixM(const Vector5 SurfacePosition, const Eigen::Vector3d IntegratedPosition, double StepSize = 0.001) const;

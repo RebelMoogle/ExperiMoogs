@@ -57,6 +57,8 @@ public:
         m_states.push_back(state);
         m_times.push_back(time);
     }
+
+	// function for interpolation along the solution / pathline (in between steps)
 };
 
 typedef mogSolution Solution3D;
