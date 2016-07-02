@@ -29,6 +29,11 @@ public:
         : m_states(states), m_times(times)
     {}
 
+	operator bool()
+	{
+		return size() > 0;
+	}
+
     size_t size() const
     {
         assert(m_states.size() == m_times.size() && "Element count of both positions and times should be the same!");
@@ -52,6 +57,8 @@ public:
         m_states.push_back(state);
         m_times.push_back(time);
     }
+
+	// function for interpolation along the solution / pathline (in between steps)
 };
 
 typedef mogSolution Solution3D;
@@ -86,7 +93,7 @@ public:
 struct mogDistanceResult {
     Vector5 MinPosition;
     Eigen::Vector3d DistanceVector;
-    std::unique_ptr<mogSolution> myIntegration = nullptr; // has to use move semantic. Can be nullptr if not used.
+    mogSolution myIntegration; // evaluates to false if empty.
 
     mogDistanceResult()
     {};
@@ -98,7 +105,6 @@ struct mogDistanceResult {
     {
         return DistanceVector.norm() < other.DistanceVector.norm();
     }
-
 
 
 };

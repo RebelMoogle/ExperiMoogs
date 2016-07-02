@@ -9,7 +9,7 @@ in vec4 position;
 in vec4 normal;
 in vec2 texcoord;
 
-out vec4 fragNormal;
+out vec3 fragNormal;
 out vec2 fragTexcoord;
 out vec4 fragColor;
 
@@ -22,10 +22,11 @@ void main(){
 
 	gl_Position = modelViewProjectionMatrix * position;
 	fragTexcoord = texcoord;
-	fragNormal = normal;
+	//fragNormal = normal;
 
-	lightDir = gl_Position.xyz - (modelViewProjectionMatrix*vec4(camPosition, 1.0)).xyz; //vec3(1., 1., 0.); 
-	reflectDir = reflect(lightDir, normalize(normal.xyz));
+	lightDir = normalize(position.xyz - camPosition); //vec3(1., 1., 0.); 
+	fragNormal = cross(cross(normal.xyz, lightDir), normal.xyz);
+	reflectDir = reflect(lightDir, normalize(fragNormal));
 	viewDir = camDirection;
 
 }
