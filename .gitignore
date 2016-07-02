@@ -241,3 +241,5 @@ _Pvt_Extensions
 *.vcxproj.filters
 *.make
 *.addons.make
+*.db
+*.rc
