@@ -1,0 +1,6 @@
+{
+  "name": "Experimoogs",
+  "tagline": "Experiments with OpenFrameworks",
+  "body": "# ExperiMoogs\r\nExperiments with OpenFrameworks\r\n\r\n## Requirements\r\nTo run, install openframeworks ( http://openframeworks.cc/download/ ) and run ProjectGenerator to generate project files and set the correct path.\r\nIt should auto-select ofxAssimpModelLoader and ofxGui in the projectgenerator, add them if they are not.\r\n\r\n### LINUX Notes:\r\nBe sure to have at least **gcc 4.9** installed BEFORE you compile OF and the ProjectGenerator, otherwise the project generation will fail.\r\n\r\n### Eigen\r\nEigen is included as header files and should work as is and not require additional settings.\r\nFor optimizing for Visual Studio, see: http://eigen.tuxfamily.org/index.php?title=Visual_Studio\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
