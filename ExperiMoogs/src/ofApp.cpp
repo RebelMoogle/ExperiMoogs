@@ -9,9 +9,10 @@ void ofApp::setup(){
 
 
 	loadMeshButton.addListener(this, &ofApp::loadMesh);
-
+	
 	gui.setup();
 	gui.add(loadMeshButton.setup("Load Mesh"));
+	gui.add(colorSlider.setup("color", ofColor::aliceBlue, ofColor::black, ofColor::white));
 
 	cam.setAutoDistance(true);
 	cam.enableMouseInput();
@@ -40,7 +41,7 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	ofBackgroundGradient(ofColor::skyBlue, ofColor::darkBlue);
+	ofBackgroundGradient(ofColor::skyBlue, colorSlider);
 
 
 	ofEnableDepthTest();

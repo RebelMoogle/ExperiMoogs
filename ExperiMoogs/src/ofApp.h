@@ -27,6 +27,7 @@ class ofApp : public ofBaseApp{
 		
 		ofxPanel gui;
 		ofxButton loadMeshButton;
+		ofxColorSlider colorSlider;
 		ofLight sun;
 		ofxAssimpModelLoader loadedMesh;
 

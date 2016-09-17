@@ -5,7 +5,6 @@
 MarkovTest::MarkovTest()
 {
 
-	of
 }
 
 

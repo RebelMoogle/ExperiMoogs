@@ -18,7 +18,7 @@ private:
 	// set resolution: create array/structure with enough values, between 0 - 2pi, add probablities not exactly but with a gradient to multiple values.  (falloff range)
 	// vector of probability-data pairs. with numValues
 	// need to save all angles per angle, not just one. 
-	std::vector<std::vector<double>> angleProbabilityPairs; // creat new unitcircle data type. saves arbitrary data for each data point at a resolution and handles getter and setter methods. 
+	std::vector<std::vector<double>> angleProbabilityPairs; // create new unitcircle data type. saves arbitrary data for each data point at a resolution and handles getter and setter methods. 
 
 };
 
